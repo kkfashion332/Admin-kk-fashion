@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Admin - Unique Fashion</title>
+    <style>
+        /* UNIQUE FASHION - ADMIN THEME */
+        :root {
+            --bg: #121212; --bg2: #1e1e1e; --card: #2c2c2c; --card2: #383838;
+            --primary: #c9a84c; --primary-dark: #a88a38;
+            --fg: #ffffff; --muted: #a0a0a0; --muted2: #777777;
+            --border: #333333; --border2: #444444;
+            --destructive: #e05555;
+            --font-display: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-display); }
+        .hidden { display: none !important; }
+        .wide-box { max-width: 350px; margin: 80px auto; padding: 30px; background: var(--card); border-radius: 12px; text-align: center; }
+        .field { width: 90%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--fg); box-sizing: border-box; }
+        .btn-primary { background: var(--primary); color: #000; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        .btn-primary:hover { opacity: 0.9; }
+        .drawer-head { padding: 20px; background: var(--card); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+        #adminTabsWrap { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+        .am-tab, .admin-tab { background: transparent; border: none; color: var(--muted); padding: 10px 15px; cursor: pointer; font-size: 15px; font-weight: bold; white-space: nowrap; }
+        .am-tab.active, .admin-tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+        .admin-section { padding: 20px; max-width: 800px; margin: 0 auto; }
+        .admin-prod, .admin-order-card, .cat-mgmt-card { background: var(--card); padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); }
+        .ap-info { flex: 1; margin: 0 15px; }
+        .ap-name { font-weight: bold; font-size: 15px; margin-bottom: 4px; }
+        .ap-sub { font-size: 12px; color: var(--muted); }
+        .ap-price { font-size: 14px; color: var(--primary); margin-top: 4px; }
+        .trash, .edit-btn, .del-order-btn { background: transparent; border: none; cursor: pointer; font-size: 18px; }
+        .del-order-btn { background: var(--destructive); color: #fff; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; }
+        img { max-width: 60px; border-radius: 6px; }
+        h3 { color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-top: 30px;}
+    </style>
+</head>
+<body>
+
+    <!-- 1. GMAIL LOGIN BOX -->
+    <div id="adminPin" class="hidden"></div>
+
+    <!-- 2. MAIN ADMIN PANEL -->
+    <div id="adminPanel" class="hidden">
+        
+        <!-- HEADER & TABS -->
+        <div class="drawer-head">
+            <h2 style="margin:0; color:var(--primary);">👑 Master Admin</h2>
+            <div id="adminTabsWrap">
+                <button id="tabProdsBtn" class="am-tab active" onclick="switchAdminTab(event, '#amProds')">Products</button>
+                <button id="tabOrdersBtn" class="am-tab" onclick="switchAdminTab(event, '#amOrders')">Orders</button>
+                <button id="tabCatsBtn" class="am-tab" onclick="switchAdminTab(event, '#amCats')">Categories</button>
+                <button id="tabCouponsBtn" class="am-tab" onclick="switchAdminTab(event, '#amCoupons')">Coupons</button>
+                <button id="tabShortsBtn" class="am-tab" onclick="switchAdminTab(event, '#amShorts')">Shorts</button>
+                <button id="tabSettingsBtn" class="am-tab" onclick="switchAdminTab(event, '#amSettings')">Banners & Settings</button>
+                <button id="tabShopsBtn" class="am-tab" onclick="switchAdminTab(event, '#amShops')">Vendors/Shops</button>
+            </div>
+        </div>
+
+        <!-- ════════ PRODUCTS SECTION ════════ -->
+        <div id="amProds" class="admin-section">
+            <h3>Add New Product</h3>
+            <input type="text" id="pName" class="field" placeholder="Product Name">
+            <input type="text" id="pImage" class="field" placeholder="Image URLs (Separate multiple with | )">
+            
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="pPrice" class="field" placeholder="Price (₹)">
+                <input type="number" id="pDiscount" class="field" placeholder="Discount %">
+                <input type="number" id="pExtra" class="field" placeholder="Extra Charge">
+            </div>
+
+            <select id="pMainCat" class="field"></select>
+            <select id="pShop" class="field"></select>
+            <input type="text" id="pUniqueId" class="field" placeholder="Unique ID / SKU (Optional)">
+            
+            <div style="margin: 10px 0 20px 0; display: flex; gap: 20px;">
+                <label><input type="checkbox" id="pInStock" checked> In Stock</label>
+                <label><input type="checkbox" id="pFreeDelivery" checked> Free Delivery</label>
+            </div>
+            <button id="addProductBtn" class="btn-primary">➕ Add Product to Collection</button>
+            
+            <h3 style="margin-top:40px;">Manage Products</h3>
+            <select id="adminFilterCat" class="field"></select>
+            <div style="font-weight:bold; margin-bottom:10px; color:var(--muted);" id="adminProdTitle">Products Loading...</div>
+            <div id="adminProducts"></div>
+        </div>
+
+        <!-- ════════ ORDERS SECTION ════════ -->
+        <div id="amOrders" class="admin-section hidden">
+            <div id="adminOrderTabs" style="margin-bottom:20px; border-bottom:1px solid var(--border);">
+                <button class="admin-tab active" data-tab="Recent">Recent</button>
+                <button class="admin-tab" data-tab="Pending">Pending</button>
+                <button class="admin-tab" data-tab="Completed">Completed</button>
+            </div>
+            <div id="adminOrdersList"></div>
+        </div>
+
+        <!-- ════════ CATEGORIES SECTION ════════ -->
+        <div id="amCats" class="admin-section hidden">
+            <h3>Create Category</h3>
+            <input type="text" id="newCatName" class="field" placeholder="E.g. MENS SHIRT">
+            <select id="newCatShop" class="field"></select>
+            <button id="addCatBtn" class="btn-primary">➕ Add Category</button>
+            
+            <h3 style="margin-top:40px;">Manage Categories</h3>
+            <div id="catMgmtList"></div>
+        </div>
+
+        <!-- ════════ COUPONS SECTION ════════ -->
+        <div id="amCoupons" class="admin-section hidden">
+            <h3>Create Discount Coupon</h3>
+            <input type="text" id="newCouponCode" class="field" placeholder="Code (e.g. DIWALI50)">
+            <input type="number" id="newCouponDiscount" class="field" placeholder="Flat Discount Amount (₹)">
+            <input type="number" id="newCouponMinOrder" class="field" placeholder="Minimum Order Value Required (₹)">
+            <button id="addCouponBtn" class="btn-primary">➕ Add Coupon</button>
+            
+            <h3 style="margin-top:40px;">Active Coupons</h3>
+            <div id="adminCouponsList"></div>
+        </div>
+
+        <!-- ════════ SHORTS / REELS SECTION ════════ -->
+        <div id="amShorts" class="admin-section hidden">
+            <h3>Add YouTube / Instagram Short</h3>
+            <input type="text" id="newShortUrl" class="field" placeholder="Paste Video URL Here">
+            <input type="text" id="newShortProductId" class="field" placeholder="Product ID to Link (Check product list)">
+            <button id="addShortBtn" class="btn-primary">➕ Add Short</button>
+            
+            <h3 style="margin-top:40px;">Active Shorts</h3>
+            <div id="adminShortsList"></div>
+        </div>
+
+        <!-- ════════ BANNERS & SETTINGS ════════ -->
+        <div id="amSettings" class="admin-section hidden">
+            <h3>Add Home Page Banner</h3>
+            <input type="text" id="newBannerImg" class="field" placeholder="Banner Image URL">
+            <input type="text" id="newBannerLink" class="field" placeholder="Click Link (Optional)">
+            <button id="addBannerBtn" class="btn-primary">➕ Add Banner</button>
+            
+            <h3 style="margin-top:40px;">Active Banners</h3>
+            <div id="adminBannersList" style="margin-bottom:40px;"></div>
+
+            <h3>Store General Settings</h3>
+            <label style="color:var(--muted); font-size:13px;">Customer Support WhatsApp Number</label>
+            <input type="text" id="adminWaNumber" class="field" placeholder="10 Digit Number">
+            <button id="saveWaBtn" class="btn-primary" style="margin-bottom:20px;">Save WhatsApp</button>
+
+            <label style="color:var(--muted); font-size:13px;">YouTube Channel Link</label>
+            <input type="text" id="adminYtLink" class="field" placeholder="https://youtube.com/...">
+            <button id="saveYtBtn" class="btn-primary">Save YouTube</button>
+        </div>
+
+        <!-- ════════ VENDOR / SHOPS SECTION ════════ -->
+        <div id="amShops" class="admin-section hidden">
+            <h3>Add / Update Vendor (Shop)</h3>
+            <input type="text" id="newShopName" class="field" placeholder="Shop Name">
+            <input type="text" id="newShopCity" class="field" placeholder="City">
+            <input type="text" id="newShopType" class="field" placeholder="Type (e.g. Men's Wear)">
+            <input type="text" id="newShopImage" class="field" placeholder="Shop Logo URL">
+            <input type="text" id="newShopUPI" class="field" placeholder="Shop's UPI ID">
+            <input type="text" id="newShopQR" class="field" placeholder="Shop's QR Code Image URL">
+            <input type="number" id="newShopCodAmt" class="field" placeholder="Safety Deposit Amt for COD (₹)">
+            
+            <div style="margin: 10px 0 20px 0; display: flex; flex-direction: column; gap: 10px;">
+                <label><input type="checkbox" id="newShopCodStatus" checked> Partial COD Enabled (Advance required)</label>
+                <label><input type="checkbox" id="newShopFullCodStatus"> 100% COD Enabled (No advance)</label>
+            </div>
+            <button id="addShopBtn" class="btn-primary">➕ Add/Update Shop</button>
+        </div>
+
+    </div>
+
+    <!-- 3. EDIT PRODUCT MODAL -->
+    <div id="editModal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:999;">
+        <div style="background:var(--card); padding:20px; border-radius:12px; width:90%; max-width:400px; border: 1px solid var(--border);">
+            <h3 style="margin-top:0; border:none;">Edit: <span id="editPName" style="color:var(--primary);"></span></h3>
+            <label style="font-size:12px; color:var(--muted);">Image URLs</label>
+            <input type="text" id="editPImage" class="field">
+            
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1;"><label style="font-size:12px; color:var(--muted);">Price</label><input type="number" id="editPPrice" class="field"></div>
+                <div style="flex:1;"><label style="font-size:12px; color:var(--muted);">Discount %</label><input type="number" id="editPDiscount" class="field"></div>
+            </div>
+            
+            <label style="margin: 10px 0; display:block;"><input type="checkbox" id="editInStock"> In Stock</label>
+            
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button id="saveEditBtn" class="btn-primary" style="flex:1;">Save Changes</button>
+                <button id="editClose" class="btn-primary" style="flex:1; background:var(--border2); color:white;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. LINKING YOUR SECURE ADMIN.JS -->
+    <script type="module" src="admin.js"></script>
+
+</body>
+</html>
