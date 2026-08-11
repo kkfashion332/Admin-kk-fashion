@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════
-   UNIQUE FASHION — admin.js (100% SECURE GMAIL LOGIN)
+   UNIQUE FASHION — admin.js (FIXED TABS & GMAIL LOGIN)
 ═══════════════════════════════════════════════════════ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
@@ -52,21 +52,28 @@ window.addEventListener("DOMContentLoaded", () => {
               <h2 style="color:var(--primary); font-family:var(--font-display);">Master Admin Portal</h2>
               <p style="color:var(--muted); font-size:13px; margin-bottom:20px;">Secured by Firebase</p>
               
-              <input id="adminEmail" type="email" class="field" value="monubhaipvr@gmail.com" disabled style="opacity:0.6; text-align:center; font-weight:bold; margin-bottom:12px;"/>
-              <input id="adminPass" type="password" placeholder="Enter Password" class="field" style="text-align:center; font-size:16px; margin-bottom:10px;" />
+              <!-- USER CAN NOW TYPE THEIR OWN EMAIL -->
+              <input id="adminEmail" type="email" placeholder="Enter Admin Gmail ID" class="field" style="text-align:center; font-size:15px; font-weight:bold; margin-bottom:12px;"/>
+              <input id="adminPass" type="password" placeholder="Enter Password" class="field" style="text-align:center; font-size:15px; font-weight:bold; margin-bottom:10px;" />
               
-              <div id="loginError" class="error hidden" style="margin-bottom:10px;">Incorrect Password!</div>
+              <div id="loginError" class="error hidden" style="margin-bottom:10px; color:var(--destructive); font-size:13px; font-weight:bold;">❌ Incorrect Email or Password!</div>
               <button id="adminLoginBtn" class="btn-primary full auth-submit" style="font-size:16px; padding:12px;">Login Securely</button>
             </div>
         `;
         loginBox.classList.remove("hidden");
 
         $("adminLoginBtn").onclick = async () => {
+            const email = $("adminEmail").value.trim();
             const pass = $("adminPass").value;
-            if(!pass) return;
+            
+            if(!email || !pass) {
+                alert("Kripya Email aur Password dono daalein!");
+                return;
+            }
+            
             $("adminLoginBtn").textContent = "Verifying...";
             try {
-                await signInWithEmailAndPassword(auth, "monubhaipvr@gmail.com", pass);
+                await signInWithEmailAndPassword(auth, email, pass);
             } catch(e) {
                 $("loginError").classList.remove("hidden");
                 $("adminLoginBtn").textContent = "Login Securely";
@@ -77,6 +84,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // AUTH LISTENER
 onAuthStateChanged(auth, (user) => {
+    // Only allow specific admin email
     if (user && user.email === "monubhaipvr@gmail.com") {
         if($("adminPin")) $("adminPin").classList.add("hidden");
         $("adminPanel").classList.remove("hidden");
@@ -149,13 +157,22 @@ async function fetchAllData() {
 }
 
 // ════════════════════════════════════════════════
-// 3. ADMIN RENDER FUNCTIONS (Same Theme & Options)
+// 3. ADMIN RENDER FUNCTIONS (TABS BUG FIXED)
 // ════════════════════════════════════════════════
 window.switchAdminTab = function(event, tabId) {
+    // Removed active class from all tabs
     document.querySelectorAll('.am-tab').forEach(b => b.classList.remove('active'));
+    // Hide all sections
     document.querySelectorAll('.admin-section').forEach(s => s.classList.add('hidden'));
+    
+    // Activate clicked tab
     event.target.classList.add('active');
-    $(tabId).classList.remove('hidden');
+    
+    // Show target section (BUG FIXED: Using querySelector to correctly find the ID like '#amOrders')
+    const targetSection = document.querySelector(tabId);
+    if(targetSection) {
+        targetSection.classList.remove('hidden');
+    }
 }
 
 function syncAddProductDropdowns() {
