@@ -1,22 +1,21 @@
-// Import Firebase Web SDK (v9 Modular)
+// Import Firebase Web SDK (v9 Modular CDN)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
-    getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, serverTimestamp, query, orderBy 
+    getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, serverTimestamp, query 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // =====================================================================
-// ⚠️ PASTE YOUR PUBLIC FIREBASE CONFIG HERE ⚠️
-// Go to Firebase Console -> Project Settings -> General -> Web App
-// Copy the config block and paste values below.
-// DO NOT USE THE PRIVATE KEY HERE!
+// 🔥 YOUR PUBLIC FIREBASE CONFIG
 // =====================================================================
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY_HERE",
-    authDomain: "kkfashion-f51ff.firebaseapp.com",
-    projectId: "kkfashion-f51ff",
-    storageBucket: "kkfashion-f51ff.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBrIfQnPpM4lywZWIiSxaz_v0o1S9PfOqg",
+  authDomain: "kkfashion-f51ff.firebaseapp.com",
+  databaseURL: "https://kkfashion-f51ff-default-rtdb.firebaseio.com",
+  projectId: "kkfashion-f51ff",
+  storageBucket: "kkfashion-f51ff.firebasestorage.app",
+  messagingSenderId: "720286728954",
+  appId: "1:720286728954:web:41a50c1a442f755ee87f43",
+  measurementId: "G-CDJVND7FC4"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -86,7 +85,7 @@ async function fetchOrders() {
         let orders = [];
         snapshot.forEach(doc => orders.push({ id: doc.id, ...doc.data() }));
         
-        // Sort Recent First (basic sorting)
+        // Sort Recent First 
         orders.sort((a, b) => {
             const timeA = a.savedAt || 0;
             const timeB = b.savedAt || 0;
@@ -120,7 +119,7 @@ async function fetchOrders() {
         list.innerHTML = html;
     } catch (e) {
         console.error("Error fetching orders:", e);
-        list.innerHTML = '<p class="text-red-500">Error loading orders. Check Firebase config.</p>';
+        list.innerHTML = '<p class="text-red-500">Error loading orders. Database rules check karein.</p>';
     }
 }
 
@@ -167,7 +166,7 @@ async function fetchProducts() {
                 ${p.source === 'Flipkart' ? `<span class="text-[10px] bg-blue-600 text-white px-2 py-1 rounded mt-2 self-start font-bold">By Flipkart</span>` : ''}
                 
                 <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
-                    <button onclick="window.openEditModal('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.price}', '${p.discount || 0}', '${p.source}', '${p.inStock}')" class="bg-gray-900 text-yellow-500 p-2 rounded-full shadow-lg border border-yellow-500/30 hover:bg-yellow-500 hover:text-gray-900">✏️</button>
+                    <button onclick="window.openEditModal('${p.id}', '${(p.name || '').replace(/'/g, "\\'")}', '${p.price}', '${p.discount || 0}', '${p.source}', '${p.inStock}')" class="bg-gray-900 text-yellow-500 p-2 rounded-full shadow-lg border border-yellow-500/30 hover:bg-yellow-500 hover:text-gray-900">✏️</button>
                     <button onclick="window.deleteProduct('${p.id}')" class="bg-gray-900 text-red-500 p-2 rounded-full shadow-lg border border-red-500/30 hover:bg-red-500 hover:text-white">🗑️</button>
                 </div>
             </div>`;
@@ -201,7 +200,7 @@ document.getElementById('addProductForm').addEventListener('submit', async (e) =
         await addDoc(collection(db, "products"), newProd);
         document.getElementById('addProductForm').reset();
         fetchProducts();
-    } catch(err) { alert("Error adding product!"); }
+    } catch(err) { alert("Error adding product! Firebase Rules check karein."); }
     btn.textContent = "➕ Add Product"; btn.disabled = false;
 });
 
@@ -277,7 +276,7 @@ async function saveSettingsData(newData) {
     try {
         await setDoc(doc(db, "settings", "storeData"), newData, { merge: true });
         fetchSettings();
-    } catch(e) { alert("Error saving to database."); }
+    } catch(e) { alert("Error saving to database. Firebase Rules Check Karein."); }
 }
 
 // Categories
