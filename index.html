@@ -129,6 +129,19 @@
                 <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-2xl mx-auto border-t-2 border-yellow-500 golden-glow">
                     <h3 class="text-2xl font-bold mb-8 text-center text-white">Platform Settings</h3>
                     <form id="settingsForm" class="flex flex-col gap-6">
+                        
+                        <!-- NEW REQUIREMENT: BRIGHT THEME TOGGLE -->
+                        <div class="p-4 bg-gray-700/30 rounded-lg border border-yellow-500/50 flex items-center justify-between">
+                            <div>
+                                <h4 class="text-yellow-500 font-bold uppercase tracking-wider text-sm mb-1">🌞 Enable Bright Theme</h4>
+                                <p class="text-xs text-gray-400">Change customer website to bright white/yellow Flipkart style.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" id="setBrightTheme" class="sr-only peer">
+                              <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
+                            </label>
+                        </div>
+                        
                         <div class="p-4 bg-gray-700/30 rounded-lg border border-gray-600">
                             <h4 class="text-yellow-500 font-bold mb-4 uppercase tracking-wider text-sm">💰 Payment Setup</h4>
                             <div class="flex flex-col gap-4">
