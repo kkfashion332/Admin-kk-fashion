@@ -75,7 +75,7 @@ async function loadAllData() {
 }
 
 // =====================================================
-// ORDERS LOGIC
+// ORDERS LOGIC (Requirement #8: Added Product Picture)
 // =====================================================
 async function fetchOrders() {
     const list = document.getElementById('ordersList');
@@ -99,14 +99,24 @@ async function fetchOrders() {
 
         let html = '';
         orders.forEach(o => {
+            // Get product image from the first item in the order array
+            let productImg = 'placeholder.jpg';
+            if (o.items && o.items.length > 0 && o.items[0].product) {
+                const pImg = o.items[0].product.image;
+                productImg = Array.isArray(pImg) ? pImg[0] : pImg;
+            }
+
             html += `
             <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 hover:border-yellow-500/40 hover:shadow-lg transition-all duration-300 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h4 class="font-bold text-lg text-yellow-500">${o.name || 'Unknown'} <span class="text-gray-400 text-sm font-normal">(${o.mobile || 'N/A'})</span></h4>
-                    <p class="text-sm text-gray-300 mt-1"><strong>Address:</strong> ${o.address || 'N/A'}</p>
-                    <p class="text-sm font-bold text-green-400 mt-2">Total: ₹${o.totalAmount || 0} <span class="text-xs text-gray-400 ml-2">(${o.paymentMethod || 'COD'})</span></p>
+                <div class="flex gap-4 w-full md:w-auto">
+                    <img src="${productImg}" alt="Order Item" class="w-20 h-20 object-cover rounded-lg border border-gray-600 shrink-0">
+                    <div>
+                        <h4 class="font-bold text-lg text-yellow-500">${o.name || 'Unknown'} <span class="text-gray-400 text-sm font-normal">(${o.mobile || 'N/A'})</span></h4>
+                        <p class="text-sm text-gray-300 mt-1"><strong>Address:</strong> ${o.address || 'N/A'}</p>
+                        <p class="text-sm font-bold text-green-400 mt-2">Total: ₹${o.totalAmount || 0} <span class="text-xs text-gray-400 ml-2">(${o.paymentMethod || 'COD'})</span></p>
+                    </div>
                 </div>
-                <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="flex items-center gap-3 w-full md:w-auto mt-3 md:mt-0">
                     <select onchange="window.updateOrderStatus('${o.id}', this.value)" class="p-2 border border-gray-600 rounded bg-gray-700 text-gray-200 focus:outline-none focus:border-yellow-500 font-semibold cursor-pointer transition-colors">
                         <option value="Recent" ${o.status === 'Recent' ? 'selected' : ''}>Recent</option>
                         <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
@@ -137,7 +147,7 @@ window.deleteOrder = async function(oid) {
 }
 
 // =====================================================
-// PRODUCTS LOGIC
+// PRODUCTS LOGIC (Requirement #7: Timeline Sorting)
 // =====================================================
 async function fetchProducts() {
     const list = document.getElementById('productsList');
@@ -145,8 +155,19 @@ async function fetchProducts() {
         const q = query(collection(db, "products"));
         const snapshot = await getDocs(q);
         let products = [];
-        snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            products.push({ 
+                id: doc.id, 
+                ...data,
+                // Ensure we have a valid timestamp for sorting
+                sortTime: data.timestamp ? (data.timestamp.seconds || 0) : 0 
+            });
+        });
         
+        // Sorting by Timeline (Newest first)
+        products.sort((a, b) => b.sortTime - a.sortTime);
+
         if (products.length === 0) {
             list.innerHTML = '<p class="text-gray-500 italic col-span-full">No products found.</p>';
             return;
@@ -258,6 +279,7 @@ async function fetchSettings() {
             document.getElementById('setUpi').value = storeSettings.upiId || '';
             document.getElementById('setQr').value = storeSettings.qrCodeUrl || '';
             document.getElementById('setWa').value = storeSettings.waNumber || '';
+            document.getElementById('setBrightTheme').checked = storeSettings.brightThemeEnabled || false;
             
             renderCategories();
             renderBanners();
@@ -352,7 +374,8 @@ document.getElementById('settingsForm').addEventListener('submit', async (e) => 
     await saveSettingsData({
         upiId: document.getElementById('setUpi').value,
         qrCodeUrl: document.getElementById('setQr').value,
-        waNumber: document.getElementById('setWa').value
+        waNumber: document.getElementById('setWa').value,
+        brightThemeEnabled: document.getElementById('setBrightTheme').checked
     });
     btn.textContent = "SAVE CONFIGURATION"; btn.disabled = false;
     alert("Settings Saved Successfully!");
