@@ -80,13 +80,19 @@
                             <option value="Unique Fashion">Unique Fashion (Default)</option>
                             <option value="Flipkart">Flipkart (Shows Tag)</option>
                         </select>
+                        
+                        <!-- NEW REQUIREMENT: SIZES INPUT -->
+                        <div class="col-span-full md:col-span-2">
+                            <input type="text" id="addProdSizes" placeholder="Sizes Available (e.g. 6, 7, 8, 9 OR S, M, L) - Comma separated" class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:border-yellow-500 focus:outline-none transition-colors">
+                        </div>
+
                         <input type="number" id="addProdPrice" placeholder="Price (₹)" required class="p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:border-yellow-500 focus:outline-none transition-colors">
                         <input type="number" id="addProdDiscount" placeholder="Discount % (Optional)" class="p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:border-yellow-500 focus:outline-none transition-colors">
                         <div class="flex items-center gap-3 p-3 bg-gray-700/50 rounded-lg border border-gray-600">
                             <input type="checkbox" id="addProdInStock" checked class="w-5 h-5 accent-yellow-500 cursor-pointer">
                             <label for="addProdInStock" class="font-semibold text-gray-300 cursor-pointer">In Stock</label>
                         </div>
-                        <button type="submit" id="addProdBtn" class="col-span-full md:col-span-2 bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg hover:bg-yellow-400 transition-all duration-300 shadow-lg shadow-yellow-500/20">➕ Add Product</button>
+                        <button type="submit" id="addProdBtn" class="col-span-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg hover:bg-yellow-400 transition-all duration-300 shadow-lg shadow-yellow-500/20">➕ Add Product</button>
                     </form>
                 </div>
                 <div id="productsList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -130,7 +136,6 @@
                     <h3 class="text-2xl font-bold mb-8 text-center text-white">Platform Settings</h3>
                     <form id="settingsForm" class="flex flex-col gap-6">
                         
-                        <!-- NEW REQUIREMENT: BRIGHT THEME TOGGLE -->
                         <div class="p-4 bg-gray-700/30 rounded-lg border border-yellow-500/50 flex items-center justify-between">
                             <div>
                                 <h4 class="text-yellow-500 font-bold uppercase tracking-wider text-sm mb-1">🌞 Enable Bright Theme</h4>
@@ -193,6 +198,13 @@
                         <input type="number" id="editDiscount" class="w-full p-3 mt-1 border border-gray-600 rounded bg-gray-700 text-white focus:border-yellow-500 focus:outline-none">
                     </div>
                 </div>
+                
+                <!-- SIZES EDIT FIELD -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-wide">Sizes Available</label>
+                    <input type="text" id="editSizes" placeholder="e.g. 6, 7, 8, 9" class="w-full p-3 mt-1 border border-gray-600 rounded bg-gray-700 text-white focus:border-yellow-500 focus:outline-none">
+                </div>
+
                 <div>
                     <label class="text-xs text-gray-400 uppercase tracking-wide">Source</label>
                     <select id="editSource" class="w-full p-3 mt-1 border border-gray-600 rounded bg-gray-700 text-white focus:border-yellow-500 focus:outline-none">
@@ -205,6 +217,26 @@
                     <label for="editInStock" class="font-semibold text-gray-300">In Stock</label>
                 </div>
                 <button type="submit" id="saveEditBtn" class="bg-yellow-500 text-gray-900 font-bold py-3 rounded hover:bg-yellow-400 transition-all mt-2">💾 Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- NEW REQUIREMENT: EDIT CATEGORY MODAL -->
+    <div id="editCategoryModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] backdrop-blur-sm">
+        <div class="bg-gray-800 p-6 rounded-2xl border-t-2 border-yellow-500 w-[400px] shadow-2xl relative">
+            <button onclick="window.closeEditCategoryModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
+            <h3 class="text-xl font-bold mb-5 text-white">Edit Category</h3>
+            <form id="editCategoryForm" class="flex flex-col gap-4">
+                <input type="hidden" id="editCatId">
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-wide">Category Name</label>
+                    <input type="text" id="editCatNameInput" required class="w-full p-3 mt-1 border border-gray-600 rounded bg-gray-700 text-white focus:border-yellow-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-wide">Image URL</label>
+                    <input type="text" id="editCatImageInput" required class="w-full p-3 mt-1 border border-gray-600 rounded bg-gray-700 text-white focus:border-yellow-500 focus:outline-none">
+                </div>
+                <button type="submit" id="saveCatEditBtn" class="bg-yellow-500 text-gray-900 font-bold py-3 rounded hover:bg-yellow-400 transition-all mt-2">💾 Save Category</button>
             </form>
         </div>
     </div>
