@@ -75,7 +75,7 @@ async function loadAllData() {
 }
 
 // =====================================================
-// ORDERS LOGIC (Requirement #8: Added Product Picture)
+// ORDERS LOGIC (With Product Picture)
 // =====================================================
 async function fetchOrders() {
     const list = document.getElementById('ordersList');
@@ -99,7 +99,6 @@ async function fetchOrders() {
 
         let html = '';
         orders.forEach(o => {
-            // Get product image from the first item in the order array
             let productImg = 'placeholder.jpg';
             if (o.items && o.items.length > 0 && o.items[0].product) {
                 const pImg = o.items[0].product.image;
@@ -147,7 +146,7 @@ window.deleteOrder = async function(oid) {
 }
 
 // =====================================================
-// PRODUCTS LOGIC (Requirement #7: Timeline Sorting)
+// PRODUCTS LOGIC (With Timeline Sorting & Size Input)
 // =====================================================
 async function fetchProducts() {
     const list = document.getElementById('productsList');
@@ -160,7 +159,6 @@ async function fetchProducts() {
             products.push({ 
                 id: doc.id, 
                 ...data,
-                // Ensure we have a valid timestamp for sorting
                 sortTime: data.timestamp ? (data.timestamp.seconds || 0) : 0 
             });
         });
@@ -176,6 +174,7 @@ async function fetchProducts() {
         let html = '';
         products.forEach(p => {
             let img = Array.isArray(p.imageUrl) ? p.imageUrl[0] : (p.imageUrl || 'placeholder.jpg');
+            const sizesSafe = p.sizesIn || '';
             html += `
             <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg relative group hover:-translate-y-1 hover:border-yellow-500/50 transition-all duration-300 overflow-hidden flex flex-col">
                 <img src="${img}" class="w-full h-48 object-cover rounded-lg mb-3 opacity-90 group-hover:opacity-100 transition-opacity">
@@ -187,7 +186,7 @@ async function fetchProducts() {
                 ${p.source === 'Flipkart' ? `<span class="text-[10px] bg-blue-600 text-white px-2 py-1 rounded mt-2 self-start font-bold">By Flipkart</span>` : ''}
                 
                 <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
-                    <button onclick="window.openEditModal('${p.id}', '${(p.name || '').replace(/'/g, "\\'")}', '${p.price}', '${p.discount || 0}', '${p.source}', '${p.inStock}')" class="bg-gray-900 text-yellow-500 p-2 rounded-full shadow-lg border border-yellow-500/30 hover:bg-yellow-500 hover:text-gray-900">✏️</button>
+                    <button onclick="window.openEditModal('${p.id}', '${(p.name || '').replace(/'/g, "\\'")}', '${p.price}', '${p.discount || 0}', '${p.source}', '${p.inStock}', '${sizesSafe}')" class="bg-gray-900 text-yellow-500 p-2 rounded-full shadow-lg border border-yellow-500/30 hover:bg-yellow-500 hover:text-gray-900">✏️</button>
                     <button onclick="window.deleteProduct('${p.id}')" class="bg-gray-900 text-red-500 p-2 rounded-full shadow-lg border border-red-500/30 hover:bg-red-500 hover:text-white">🗑️</button>
                 </div>
             </div>`;
@@ -211,6 +210,7 @@ document.getElementById('addProductForm').addEventListener('submit', async (e) =
         imageUrl: imgList,
         mainCategoryId: document.getElementById('addProdCategory').value,
         source: document.getElementById('addProdSource').value,
+        sizesIn: document.getElementById('addProdSizes').value, // SIZES FIELD
         price: parseFloat(document.getElementById('addProdPrice').value),
         discount: parseFloat(document.getElementById('addProdDiscount').value || 0),
         inStock: document.getElementById('addProdInStock').checked,
@@ -232,12 +232,13 @@ window.deleteProduct = async function(pid) {
     }
 }
 
-window.openEditModal = function(id, name, price, discount, source, inStock) {
+window.openEditModal = function(id, name, price, discount, source, inStock, sizesIn) {
     document.getElementById('editProdId').value = id;
     document.getElementById('editName').value = name;
     document.getElementById('editPrice').value = price;
     document.getElementById('editDiscount').value = discount;
     document.getElementById('editSource').value = source || 'Unique Fashion';
+    document.getElementById('editSizes').value = sizesIn || ''; // SIZES FIELD
     document.getElementById('editInStock').checked = (inStock === 'true' || inStock === true);
     document.getElementById('editModal').style.display = 'flex';
 }
@@ -256,6 +257,7 @@ document.getElementById('editProductForm').addEventListener('submit', async (e) 
             price: parseFloat(document.getElementById('editPrice').value),
             discount: parseFloat(document.getElementById('editDiscount').value || 0),
             source: document.getElementById('editSource').value,
+            sizesIn: document.getElementById('editSizes').value, // SIZES FIELD
             inStock: document.getElementById('editInStock').checked
         });
         window.closeEditModal();
@@ -301,7 +303,9 @@ async function saveSettingsData(newData) {
     } catch(e) { alert("Error saving to database. Firebase Rules Check Karein."); }
 }
 
-// Categories
+// =====================================================
+// CATEGORIES LOGIC (With Edit Modal functionality)
+// =====================================================
 document.getElementById('addCategoryForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const newCat = {
@@ -324,15 +328,52 @@ function renderCategories() {
         <div class="bg-gray-800 p-4 rounded-xl shadow-lg flex flex-col items-center text-center border-t-4 border-yellow-500 relative group">
             <img src="${cat.image || 'https://via.placeholder.com/150'}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-600 mb-3">
             <span class="font-bold text-gray-200 text-sm">${cat.name}</span>
-            <button onclick="window.deleteCategory('${cat.id}')" class="mt-3 text-xs bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white px-3 py-1 rounded">Delete</button>
+            <div class="flex gap-2 mt-3">
+                <button onclick="window.openEditCategoryModal('${cat.id}', '${cat.name}', '${cat.image}')" class="text-xs bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500 hover:text-gray-900 px-3 py-1 rounded transition-colors">Edit</button>
+                <button onclick="window.deleteCategory('${cat.id}')" class="text-xs bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white px-3 py-1 rounded transition-colors">Delete</button>
+            </div>
         </div>`;
     });
     list.innerHTML = html;
 }
+
 window.deleteCategory = async function(cid) {
-    storeSettings.mainCategories = storeSettings.mainCategories.filter(c => c.id !== cid);
-    await saveSettingsData({ mainCategories: storeSettings.mainCategories });
+    if(confirm("Are you sure you want to delete this category?")) {
+        storeSettings.mainCategories = storeSettings.mainCategories.filter(c => c.id !== cid);
+        await saveSettingsData({ mainCategories: storeSettings.mainCategories });
+    }
 }
+
+// Edit Category Modal Functions
+window.openEditCategoryModal = function(id, name, image) {
+    document.getElementById('editCatId').value = id;
+    document.getElementById('editCatNameInput').value = name;
+    document.getElementById('editCatImageInput').value = image;
+    document.getElementById('editCategoryModal').style.display = 'flex';
+}
+
+window.closeEditCategoryModal = function() {
+    document.getElementById('editCategoryModal').style.display = 'none';
+}
+
+document.getElementById('editCategoryForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const cid = document.getElementById('editCatId').value;
+    const btn = document.getElementById('saveCatEditBtn');
+    btn.textContent = "Saving..."; btn.disabled = true;
+    
+    const catIndex = storeSettings.mainCategories.findIndex(c => c.id === cid);
+    if(catIndex > -1) {
+        storeSettings.mainCategories[catIndex].name = document.getElementById('editCatNameInput').value;
+        storeSettings.mainCategories[catIndex].image = document.getElementById('editCatImageInput').value;
+        await saveSettingsData({ mainCategories: storeSettings.mainCategories });
+        window.closeEditCategoryModal();
+    } else {
+        alert("Category not found!");
+    }
+    btn.textContent = "💾 Save Category"; btn.disabled = false;
+});
+
 
 // Banners
 document.getElementById('addBannerForm').addEventListener('submit', async (e) => {
