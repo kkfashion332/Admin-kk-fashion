@@ -1,8 +1,8 @@
-// Import Firebase Web SDK (v9 Modular CDN)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+// Import Firebase Web SDK (v12.14.0 Modular CDN)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { 
     getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, serverTimestamp, query 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 // =====================================================================
 // 🔥 YOUR PUBLIC FIREBASE CONFIG
@@ -14,8 +14,7 @@ const firebaseConfig = {
   projectId: "kkfashion-f51ff",
   storageBucket: "kkfashion-f51ff.firebasestorage.app",
   messagingSenderId: "720286728954",
-  appId: "1:720286728954:web:41a50c1a442f755ee87f43",
-  measurementId: "G-CDJVND7FC4"
+  appId: "1:720286728954:web:eebcf2a28f5ad696e87f43"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -100,9 +99,11 @@ async function fetchOrders() {
         let html = '';
         orders.forEach(o => {
             let productImg = 'placeholder.jpg';
-            if (o.items && o.items.length > 0 && o.items[0].product) {
+            if (o.items && o.items.length > 0 && o.items[0].product && o.items[0].product.image) {
                 const pImg = o.items[0].product.image;
                 productImg = Array.isArray(pImg) ? pImg[0] : pImg;
+            } else if (o.shopName === "Combo Package") {
+                productImg = "logo.png"; // Fallback for Combo Orders
             }
 
             html += `
@@ -175,6 +176,8 @@ async function fetchProducts() {
         products.forEach(p => {
             let img = Array.isArray(p.imageUrl) ? p.imageUrl[0] : (p.imageUrl || 'placeholder.jpg');
             const sizesSafe = p.sizesIn || '';
+            const encodedName = encodeURIComponent(p.name || ''); // 🔥 FIX FOR QUOTES IN NAME
+            
             html += `
             <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg relative group hover:-translate-y-1 hover:border-yellow-500/50 transition-all duration-300 overflow-hidden flex flex-col">
                 <img src="${img}" class="w-full h-48 object-cover rounded-lg mb-3 opacity-90 group-hover:opacity-100 transition-opacity">
@@ -186,7 +189,7 @@ async function fetchProducts() {
                 ${p.source === 'Flipkart' ? `<span class="text-[10px] bg-blue-600 text-white px-2 py-1 rounded mt-2 self-start font-bold">By Flipkart</span>` : ''}
                 
                 <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
-                    <button onclick="window.openEditModal('${p.id}', '${(p.name || '').replace(/'/g, "\\'")}', '${p.price}', '${p.discount || 0}', '${p.source}', '${p.inStock}', '${sizesSafe}')" class="bg-gray-900 text-yellow-500 p-2 rounded-full shadow-lg border border-yellow-500/30 hover:bg-yellow-500 hover:text-gray-900">✏️</button>
+                    <button onclick="window.openEditModal('${p.id}', '${encodedName}', '${p.price}', '${p.discount || 0}', '${p.source}', '${p.inStock}', '${sizesSafe}', '${p.mainCategoryId || ''}', '${p.specificUpi || ''}', '${p.specificQr || ''}')" class="bg-gray-900 text-yellow-500 p-2 rounded-full shadow-lg border border-yellow-500/30 hover:bg-yellow-500 hover:text-gray-900">✏️</button>
                     <button onclick="window.deleteProduct('${p.id}')" class="bg-gray-900 text-red-500 p-2 rounded-full shadow-lg border border-red-500/30 hover:bg-red-500 hover:text-white">🗑️</button>
                 </div>
             </div>`;
@@ -214,6 +217,8 @@ document.getElementById('addProductForm').addEventListener('submit', async (e) =
         price: parseFloat(document.getElementById('addProdPrice').value),
         discount: parseFloat(document.getElementById('addProdDiscount').value || 0),
         inStock: document.getElementById('addProdInStock').checked,
+        specificUpi: document.getElementById('addProdUpi').value.trim(), // 🔥 NEW SPECIAL PAYMENT
+        specificQr: document.getElementById('addProdQr').value.trim(),   // 🔥 NEW SPECIAL PAYMENT
         timestamp: serverTimestamp()
     };
 
@@ -232,13 +237,17 @@ window.deleteProduct = async function(pid) {
     }
 }
 
-window.openEditModal = function(id, name, price, discount, source, inStock, sizesIn) {
+// 🔥 FIX: Now accepting Category & Special Payment Fields 🔥
+window.openEditModal = function(id, encodedName, price, discount, source, inStock, sizesIn, catId, upi, qr) {
     document.getElementById('editProdId').value = id;
-    document.getElementById('editName').value = name;
+    document.getElementById('editName').value = decodeURIComponent(encodedName);
     document.getElementById('editPrice').value = price;
     document.getElementById('editDiscount').value = discount;
     document.getElementById('editSource').value = source || 'Unique Fashion';
-    document.getElementById('editSizes').value = sizesIn || ''; // SIZES FIELD
+    document.getElementById('editSizes').value = sizesIn || ''; 
+    document.getElementById('editCategorySelect').value = catId || '';
+    document.getElementById('editUpi').value = upi || '';
+    document.getElementById('editQr').value = qr || '';
     document.getElementById('editInStock').checked = (inStock === 'true' || inStock === true);
     document.getElementById('editModal').style.display = 'flex';
 }
@@ -257,7 +266,10 @@ document.getElementById('editProductForm').addEventListener('submit', async (e) 
             price: parseFloat(document.getElementById('editPrice').value),
             discount: parseFloat(document.getElementById('editDiscount').value || 0),
             source: document.getElementById('editSource').value,
-            sizesIn: document.getElementById('editSizes').value, // SIZES FIELD
+            sizesIn: document.getElementById('editSizes').value, 
+            mainCategoryId: document.getElementById('editCategorySelect').value, // 🔥 UPDATE CATEGORY
+            specificUpi: document.getElementById('editUpi').value.trim(),        // 🔥 UPDATE SPECIAL PAYMENT
+            specificQr: document.getElementById('editQr').value.trim(),          // 🔥 UPDATE SPECIAL PAYMENT
             inStock: document.getElementById('editInStock').checked
         });
         window.closeEditModal();
@@ -283,23 +295,30 @@ async function fetchSettings() {
             document.getElementById('setWa').value = storeSettings.waNumber || '';
             document.getElementById('setBrightTheme').checked = storeSettings.brightThemeEnabled || false;
             
+            populateCategoryDropdowns();
             renderCategories();
             renderBanners();
-            
-            // Populate Category Dropdown in Add Product
-            const catSelect = document.getElementById('addProdCategory');
-            catSelect.innerHTML = '<option value="">Select Category</option>';
-            storeSettings.mainCategories.forEach(cat => {
-                catSelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
-            });
         }
     } catch(e) { console.error("Error fetching settings:", e); }
+}
+
+function populateCategoryDropdowns() {
+    const addSelect = document.getElementById('addProdCategory');
+    const editSelect = document.getElementById('editCategorySelect');
+    
+    let options = '<option value="">Select Category</option>';
+    storeSettings.mainCategories.forEach(cat => {
+        options += `<option value="${cat.id}">${cat.name}</option>`;
+    });
+    
+    addSelect.innerHTML = options;
+    editSelect.innerHTML = options;
 }
 
 async function saveSettingsData(newData) {
     try {
         await setDoc(doc(db, "settings", "storeData"), newData, { merge: true });
-        fetchSettings();
+        fetchSettings(); // Refresh to update dropdowns and lists
     } catch(e) { alert("Error saving to database. Firebase Rules Check Karein."); }
 }
 
@@ -324,12 +343,15 @@ function renderCategories() {
     if(storeSettings.mainCategories.length === 0) { list.innerHTML = '<p class="text-gray-500 italic col-span-full">No categories.</p>'; return; }
     let html = '';
     storeSettings.mainCategories.forEach(cat => {
+        // 🔥 FIX: Encode name to prevent quote bugs in onclick
+        const encodedCatName = encodeURIComponent(cat.name || '');
+        
         html += `
         <div class="bg-gray-800 p-4 rounded-xl shadow-lg flex flex-col items-center text-center border-t-4 border-yellow-500 relative group">
             <img src="${cat.image || 'https://via.placeholder.com/150'}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-600 mb-3">
             <span class="font-bold text-gray-200 text-sm">${cat.name}</span>
             <div class="flex gap-2 mt-3">
-                <button onclick="window.openEditCategoryModal('${cat.id}', '${cat.name}', '${cat.image}')" class="text-xs bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500 hover:text-gray-900 px-3 py-1 rounded transition-colors">Edit</button>
+                <button onclick="window.openEditCategoryModal('${cat.id}', '${encodedCatName}', '${cat.image}')" class="text-xs bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500 hover:text-gray-900 px-3 py-1 rounded transition-colors">Edit</button>
                 <button onclick="window.deleteCategory('${cat.id}')" class="text-xs bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white px-3 py-1 rounded transition-colors">Delete</button>
             </div>
         </div>`;
@@ -344,10 +366,10 @@ window.deleteCategory = async function(cid) {
     }
 }
 
-// Edit Category Modal Functions
-window.openEditCategoryModal = function(id, name, image) {
+// 🔥 FIX: Decode the category name when opening modal 🔥
+window.openEditCategoryModal = function(id, encodedName, image) {
     document.getElementById('editCatId').value = id;
-    document.getElementById('editCatNameInput').value = name;
+    document.getElementById('editCatNameInput').value = decodeURIComponent(encodedName);
     document.getElementById('editCatImageInput').value = image;
     document.getElementById('editCategoryModal').style.display = 'flex';
 }
