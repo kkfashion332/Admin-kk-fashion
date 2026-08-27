@@ -74,7 +74,7 @@ async function loadAllData() {
 }
 
 // =====================================================
-// ORDERS LOGIC (With Product Picture)
+// ORDERS LOGIC
 // =====================================================
 async function fetchOrders() {
     const list = document.getElementById('ordersList');
@@ -102,8 +102,6 @@ async function fetchOrders() {
             if (o.items && o.items.length > 0 && o.items[0].product && o.items[0].product.image) {
                 const pImg = o.items[0].product.image;
                 productImg = Array.isArray(pImg) ? pImg[0] : pImg;
-            } else if (o.shopName === "Combo Package") {
-                productImg = "logo.png"; // Fallback for Combo Orders
             }
 
             html += `
@@ -147,7 +145,7 @@ window.deleteOrder = async function(oid) {
 }
 
 // =====================================================
-// PRODUCTS LOGIC (With Timeline Sorting & Size Input)
+// PRODUCTS LOGIC
 // =====================================================
 async function fetchProducts() {
     const list = document.getElementById('productsList');
@@ -189,7 +187,7 @@ async function fetchProducts() {
                 ${p.source === 'Flipkart' ? `<span class="text-[10px] bg-blue-600 text-white px-2 py-1 rounded mt-2 self-start font-bold">By Flipkart</span>` : ''}
                 
                 <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
-                    <button onclick="window.openEditModal('${p.id}', '${encodedName}', '${p.price}', '${p.discount || 0}', '${p.source}', '${p.inStock}', '${sizesSafe}', '${p.mainCategoryId || ''}', '${p.specificUpi || ''}', '${p.specificQr || ''}')" class="bg-gray-900 text-yellow-500 p-2 rounded-full shadow-lg border border-yellow-500/30 hover:bg-yellow-500 hover:text-gray-900">✏️</button>
+                    <button onclick="window.openEditModal('${p.id}', '${encodedName}', '${p.price}', '${p.discount || 0}', '${p.source}', '${p.inStock}', '${sizesSafe}', '${p.mainCategoryId || ''}')" class="bg-gray-900 text-yellow-500 p-2 rounded-full shadow-lg border border-yellow-500/30 hover:bg-yellow-500 hover:text-gray-900">✏️</button>
                     <button onclick="window.deleteProduct('${p.id}')" class="bg-gray-900 text-red-500 p-2 rounded-full shadow-lg border border-red-500/30 hover:bg-red-500 hover:text-white">🗑️</button>
                 </div>
             </div>`;
@@ -213,12 +211,10 @@ document.getElementById('addProductForm').addEventListener('submit', async (e) =
         imageUrl: imgList,
         mainCategoryId: document.getElementById('addProdCategory').value,
         source: document.getElementById('addProdSource').value,
-        sizesIn: document.getElementById('addProdSizes').value, // SIZES FIELD
+        sizesIn: document.getElementById('addProdSizes').value, 
         price: parseFloat(document.getElementById('addProdPrice').value),
         discount: parseFloat(document.getElementById('addProdDiscount').value || 0),
         inStock: document.getElementById('addProdInStock').checked,
-        specificUpi: document.getElementById('addProdUpi').value.trim(), // 🔥 NEW SPECIAL PAYMENT
-        specificQr: document.getElementById('addProdQr').value.trim(),   // 🔥 NEW SPECIAL PAYMENT
         timestamp: serverTimestamp()
     };
 
@@ -237,8 +233,7 @@ window.deleteProduct = async function(pid) {
     }
 }
 
-// 🔥 FIX: Now accepting Category & Special Payment Fields 🔥
-window.openEditModal = function(id, encodedName, price, discount, source, inStock, sizesIn, catId, upi, qr) {
+window.openEditModal = function(id, encodedName, price, discount, source, inStock, sizesIn, catId) {
     document.getElementById('editProdId').value = id;
     document.getElementById('editName').value = decodeURIComponent(encodedName);
     document.getElementById('editPrice').value = price;
@@ -246,11 +241,10 @@ window.openEditModal = function(id, encodedName, price, discount, source, inStoc
     document.getElementById('editSource').value = source || 'Unique Fashion';
     document.getElementById('editSizes').value = sizesIn || ''; 
     document.getElementById('editCategorySelect').value = catId || '';
-    document.getElementById('editUpi').value = upi || '';
-    document.getElementById('editQr').value = qr || '';
     document.getElementById('editInStock').checked = (inStock === 'true' || inStock === true);
     document.getElementById('editModal').style.display = 'flex';
 }
+
 window.closeEditModal = function() {
     document.getElementById('editModal').style.display = 'none';
 }
@@ -268,8 +262,6 @@ document.getElementById('editProductForm').addEventListener('submit', async (e) 
             source: document.getElementById('editSource').value,
             sizesIn: document.getElementById('editSizes').value, 
             mainCategoryId: document.getElementById('editCategorySelect').value, // 🔥 UPDATE CATEGORY
-            specificUpi: document.getElementById('editUpi').value.trim(),        // 🔥 UPDATE SPECIAL PAYMENT
-            specificQr: document.getElementById('editQr').value.trim(),          // 🔥 UPDATE SPECIAL PAYMENT
             inStock: document.getElementById('editInStock').checked
         });
         window.closeEditModal();
@@ -312,7 +304,7 @@ function populateCategoryDropdowns() {
     });
     
     addSelect.innerHTML = options;
-    editSelect.innerHTML = options;
+    if(editSelect) editSelect.innerHTML = options;
 }
 
 async function saveSettingsData(newData) {
@@ -395,7 +387,6 @@ document.getElementById('editCategoryForm').addEventListener('submit', async (e)
     }
     btn.textContent = "💾 Save Category"; btn.disabled = false;
 });
-
 
 // Banners
 document.getElementById('addBannerForm').addEventListener('submit', async (e) => {
