@@ -78,20 +78,28 @@
                         </select>
                         <select id="addProdSource" class="p-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-300 focus:border-yellow-500 focus:outline-none cursor-pointer">
                             <option value="Unique Fashion">Unique Fashion (Default)</option>
-                            <option value="Flipkart">Flipkart (Shows Tag)</option>
+                            <option value="Flipkart">Flipkart (Shows Special Tag internally)</option>
                         </select>
                         
-                        <!-- NEW REQUIREMENT: SIZES INPUT -->
                         <div class="col-span-full md:col-span-2">
                             <input type="text" id="addProdSizes" placeholder="Sizes Available (e.g. 6, 7, 8, 9 OR S, M, L) - Comma separated" class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:border-yellow-500 focus:outline-none transition-colors">
                         </div>
 
                         <input type="number" id="addProdPrice" placeholder="Price (₹)" required class="p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:border-yellow-500 focus:outline-none transition-colors">
                         <input type="number" id="addProdDiscount" placeholder="Discount % (Optional)" class="p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:border-yellow-500 focus:outline-none transition-colors">
+                        
                         <div class="flex items-center gap-3 p-3 bg-gray-700/50 rounded-lg border border-gray-600">
                             <input type="checkbox" id="addProdInStock" checked class="w-5 h-5 accent-yellow-500 cursor-pointer">
                             <label for="addProdInStock" class="font-semibold text-gray-300 cursor-pointer">In Stock</label>
                         </div>
+
+                        <!-- 🔥 NEW: FLIPKART SPECIAL PAYMENT INPUTS 🔥 -->
+                        <div class="col-span-full md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 p-4 bg-gray-700/30 rounded-lg border border-blue-500/50">
+                            <p class="text-xs text-blue-400 col-span-full font-bold uppercase tracking-wider">🛒 Specific Payment Method (For Flipkart/Special Items)</p>
+                            <input type="text" id="addProdUpi" placeholder="Specific UPI ID (Optional)" class="p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:border-blue-500 focus:outline-none transition-colors">
+                            <input type="text" id="addProdQr" placeholder="Specific QR Image URL (Optional)" class="p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:border-blue-500 focus:outline-none transition-colors">
+                        </div>
+
                         <button type="submit" id="addProdBtn" class="col-span-full bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg hover:bg-yellow-400 transition-all duration-300 shadow-lg shadow-yellow-500/20">➕ Add Product</button>
                     </form>
                 </div>
@@ -148,7 +156,7 @@
                         </div>
                         
                         <div class="p-4 bg-gray-700/30 rounded-lg border border-gray-600">
-                            <h4 class="text-yellow-500 font-bold mb-4 uppercase tracking-wider text-sm">💰 Payment Setup</h4>
+                            <h4 class="text-yellow-500 font-bold mb-4 uppercase tracking-wider text-sm">💰 Main Payment Setup</h4>
                             <div class="flex flex-col gap-4">
                                 <div>
                                     <label class="text-gray-300 block mb-1 text-xs">Your UPI ID</label>
@@ -177,10 +185,10 @@
         </main>
     </div>
 
-    <!-- Edit Product Modal -->
-    <div id="editModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] backdrop-blur-sm">
-        <div class="bg-gray-800 p-6 rounded-2xl border-t-2 border-yellow-500 w-[400px] shadow-2xl relative">
-            <button onclick="window.closeEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
+    <!-- 🔥 FIX: EDIT PRODUCT MODAL (Now Scrollable with Category & UPI fields) 🔥 -->
+    <div id="editModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] backdrop-blur-sm p-4">
+        <div class="bg-gray-800 p-6 rounded-2xl border-t-2 border-yellow-500 w-[450px] shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="window.closeEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center">✕</button>
             <h3 class="text-xl font-bold mb-5 text-white">Edit Product</h3>
             <form id="editProductForm" class="flex flex-col gap-4">
                 <input type="hidden" id="editProdId">
@@ -188,6 +196,15 @@
                     <label class="text-xs text-gray-400 uppercase tracking-wide">Product Name</label>
                     <input type="text" id="editName" required class="w-full p-3 mt-1 border border-gray-600 rounded bg-gray-700 text-white focus:border-yellow-500 focus:outline-none">
                 </div>
+                
+                <!-- 🔥 NEW: EDIT CATEGORY DROPDOWN 🔥 -->
+                <div>
+                    <label class="text-xs text-gray-400 uppercase tracking-wide">Category</label>
+                    <select id="editCategorySelect" class="w-full p-3 mt-1 border border-gray-600 rounded bg-gray-700 text-white focus:border-yellow-500 focus:outline-none">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-xs text-gray-400 uppercase tracking-wide">Price (₹)</label>
@@ -199,7 +216,6 @@
                     </div>
                 </div>
                 
-                <!-- SIZES EDIT FIELD -->
                 <div>
                     <label class="text-xs text-gray-400 uppercase tracking-wide">Sizes Available</label>
                     <input type="text" id="editSizes" placeholder="e.g. 6, 7, 8, 9" class="w-full p-3 mt-1 border border-gray-600 rounded bg-gray-700 text-white focus:border-yellow-500 focus:outline-none">
@@ -212,6 +228,20 @@
                         <option value="Flipkart">Flipkart</option>
                     </select>
                 </div>
+
+                <!-- 🔥 NEW: EDIT SPECIAL PAYMENT 🔥 -->
+                <div class="p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                    <p class="text-xs text-blue-400 font-bold uppercase mb-2">🛒 Special Payment (Optional)</p>
+                    <div class="mb-3">
+                        <label class="text-xs text-gray-400">Specific UPI ID</label>
+                        <input type="text" id="editUpi" placeholder="Leave blank for default" class="w-full p-2 mt-1 border border-gray-600 rounded bg-gray-800 text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400">Specific QR URL</label>
+                        <input type="text" id="editQr" placeholder="Leave blank for default" class="w-full p-2 mt-1 border border-gray-600 rounded bg-gray-800 text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+                </div>
+
                 <div class="flex items-center gap-3 p-3 bg-gray-700/50 rounded border border-gray-600">
                     <input type="checkbox" id="editInStock" class="w-5 h-5 accent-yellow-500">
                     <label for="editInStock" class="font-semibold text-gray-300">In Stock</label>
@@ -221,7 +251,7 @@
         </div>
     </div>
 
-    <!-- NEW REQUIREMENT: EDIT CATEGORY MODAL -->
+    <!-- EDIT CATEGORY MODAL -->
     <div id="editCategoryModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] backdrop-blur-sm">
         <div class="bg-gray-800 p-6 rounded-2xl border-t-2 border-yellow-500 w-[400px] shadow-2xl relative">
             <button onclick="window.closeEditCategoryModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
